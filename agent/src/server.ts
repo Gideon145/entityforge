@@ -1,6 +1,10 @@
 import express from "express";
 import cors from "cors";
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "path";
+
+// Load .env from agent directory regardless of cwd
+dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 
 import { formEntity } from "./agents/formation";
 import { negotiateContract } from "./agents/negotiation";

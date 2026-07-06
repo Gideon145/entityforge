@@ -1,6 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic();
+let _anthropic: Anthropic | null = null;
+function getAnthropic(): Anthropic {
+  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return _anthropic;
+}
 
 export interface NegotiationResult {
   accepted: boolean;
@@ -44,8 +48,8 @@ export async function negotiateContract(
   buyerConstitution: string,
   serviceRequest: string
 ): Promise<NegotiationResult> {
-  const msg = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+  const msg = await getAnthropic().messages.create({
+    model: "claude-sonnet-4-5-20250929",
     max_tokens: 2048,
     system: NEGOTIATION_PROMPT,
     messages: [

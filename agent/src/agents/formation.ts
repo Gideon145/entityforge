@@ -1,6 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic();
+let _anthropic: Anthropic | null = null;
+function getAnthropic(): Anthropic {
+  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return _anthropic;
+}
 
 export interface EntityConstitution {
   name: string;
@@ -43,8 +47,8 @@ Rules:
 - All fields required. Be creative but practical.`;
 
 export async function formEntity(ideaDescription: string): Promise<EntityConstitution> {
-  const msg = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+  const msg = await getAnthropic().messages.create({
+    model: "claude-sonnet-4-5-20250929",
     max_tokens: 2048,
     system: FORMATION_PROMPT,
     messages: [{ role: "user", content: ideaDescription }],
