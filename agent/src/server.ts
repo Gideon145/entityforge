@@ -11,9 +11,22 @@ import { negotiateContract } from "./agents/negotiation";
 import { findProvider } from "./agents/procurement";
 import { getProvider, getFactory, getContract, getVault } from "./chain";
 import { ethers } from "ethers";
+import { x402PreCheck, x402PaymentRequired } from "./x402";
 
 const app = express();
 app.use(cors());
+
+// ── x402 pre-check for /form: runs BEFORE body parsing ──
+// This prevents JSON parse errors from health checks hitting the paid endpoint
+app.use("/form", (req, res, next) => {
+  // If request has no payment header and no content-type, it's likely a health check
+  // Return 402 immediately before body-parser chokes on empty body
+  if (!req.headers["payment-signature"] && (!req.headers["content-type"] || req.headers["content-type"] === "")) {
+    return x402PreCheck(req, res, next);
+  }
+  next();
+});
+
 app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
@@ -52,7 +65,8 @@ app.post("/sync", async (_req, res) => {
 });
 
 // ── POST /form — Form a new entity (AI + on-chain) ──────
-app.post("/form", async (req, res) => {
+// Protected by x402 payment middleware
+app.post("/form", x402PaymentRequired, async (req, res) => {
   try {
     const { idea } = req.body;
     if (!idea || typeof idea !== "string") {
