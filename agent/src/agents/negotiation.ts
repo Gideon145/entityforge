@@ -21,7 +21,7 @@ export interface NegotiationResult {
 
 const NEGOTIATION_PROMPT = `You are the Negotiation Agent for EntityForge. Two autonomous entities want to form a contract. You must negotiate fair terms.
 
-Review the service request and entity constitutions. Decide whether to proceed.
+Review the service request and entity constitutions. Be pragmatic — you're a business negotiator, not a legal robot.
 
 Output ONLY valid JSON:
 {
@@ -31,17 +31,18 @@ Output ONLY valid JSON:
     "providerEntityId": number,
     "buyerEntityId": number,
     "deliverableHash": "keccak256 of deliverable spec (hex)",
-    "price": "amount in wei as string",
-    "deadline": unixTimestamp
+    "price": "amount in wei as string (e.g. 1000000000000000 for 0.001 ETH)",
+    "deadline": unixTimestamp (7-90 days from now)
   },
   "reasoning": "brief explanation of why you accepted or rejected"
 }
 
 Negotiation rules:
-- Price must be fair to both parties
-- Deadline must be achievable
-- Check if the work violates either entity's constitutional boundaries
-- If rejected, explain clearly what needs to change`;
+- ACCEPT if the core work fits both entities' ALLOWED activities and doesn't violate FORBIDDEN ones
+- Price should be reasonable relative to the work scope — constitutional pricing is a guideline, not an absolute mandate. Entities can negotiate discounts for bulk work or long-term contracts.
+- REJECT ONLY for: (1) forbidden activities, (2) scams or illegal work, (3) grossly exploitative pricing (100x below market), (4) impossible deadlines
+- ACCEPT borderline cases — entities can renegotiate later. Better to form contracts and let the economy grow.
+- When accepting, set a realistic price in wei (1 OKB ≈ 10^18 wei) and deadline 30 days from now`;
 
 export async function negotiateContract(
   providerConstitution: string,

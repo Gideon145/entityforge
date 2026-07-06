@@ -185,12 +185,15 @@ app.post("/negotiate", async (req, res) => {
       const deliverableHash = ethers.keccak256(
         ethers.toUtf8Bytes(serviceRequest)
       );
+      // Ensure deadline is always at least 7 days in the future
+      const minDeadline = Math.floor(Date.now() / 1000) + 7 * 86400;
+      const safeDeadline = Math.max(result.contractTerms.deadline, minDeadline);
       const tx = await agmt.propose(
         result.contractTerms.providerEntityId,
         result.contractTerms.buyerEntityId,
         deliverableHash,
         result.contractTerms.price,
-        result.contractTerms.deadline
+        safeDeadline
       );
       const receipt = await tx.wait();
       txHash = receipt.hash;

@@ -126,10 +126,14 @@ export default function Home() {
                 {negoBusy ? "⚡ Negotiating…" : "🤝 Negotiate & Propose On-Chain"}
               </button>
               {nego && (
-                <div style={{ marginTop: "0.8rem", padding: "0.7rem", borderRadius: 7, background: nego.accepted ? "#061a06" : "#1a0606", border: `1px solid ${nego.accepted ? "#0d3320" : "#331010"}` }}>
-                  <strong style={{ color: nego.accepted ? "#4ade80" : "#f87171" }}>{nego.accepted ? "✅ Accepted" : "❌ Rejected"}</strong>
-                  <p style={{ fontSize: "0.8rem", margin: "0.3rem 0", color: "#999" }}>{nego.reasoning}</p>
+                <div style={{ marginTop: "0.8rem", padding: "0.7rem", borderRadius: 7, background: nego.accepted ? "#061a06" : "#1a0606", border: `1px solid ${nego.accepted ? "#0d3320" : "#331010"}`, maxHeight: 280, overflowY: "auto" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
+                    <strong style={{ color: nego.accepted ? "#4ade80" : "#f87171", fontSize: "0.95rem" }}>{nego.accepted ? "✅ Accepted" : "❌ Rejected"}</strong>
+                    <span style={{ fontSize: "0.75rem", color: "#888" }}>Confidence: {nego.confidence}%</span>
+                  </div>
+                  <p style={{ fontSize: "0.8rem", margin: "0.3rem 0", color: "#bbb", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{nego.reasoning}</p>
                   {nego.txHash && <a href={okLink(nego.txHash)} target="_blank" style={s.link}>View tx on OKLink ↗</a>}
+                  {nego.contractId && <p style={{ fontSize: "0.7rem", color: "#666", marginTop: "0.3rem" }}>Contract ID: {nego.contractId}</p>}
                 </div>
               )}
             </div>
