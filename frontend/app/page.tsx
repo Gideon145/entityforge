@@ -191,12 +191,12 @@ export default function Home() {
       setNegoResult(d);
       setNegoStep(d.accepted ? negoSteps.length : -1);
       if (d.accepted) {
-        setCelebrate(true);
-        setTimeout(() => setCelebrate(false), 3000);
-        setFeed(prev => [{ icon: "📜", text: `Contract signed between two entities`, time: new Date().toLocaleTimeString(), color: c.green }, ...prev].slice(0, 8));
+        if (d.txHash) { setCelebrate(true); setTimeout(() => setCelebrate(false), 3000); }
+        setFeed(prev => [{ icon: d.txHash ? "📜" : "🤝", text: d.txHash ? "Contract signed on-chain" : "Agreement reached (on-chain pending)", time: new Date().toLocaleTimeString(), color: d.txHash ? c.green : c.amber }, ...prev].slice(0, 8));
+        fetch(`${API}/contracts`).then(r => r.json()).then(setContracts);
       }
     } catch (e: any) {
-      setNegoResult({ error: e.message });
+      setNegoResult({ error: e.message || "Connection failed — RPC may be down. Try again." });
       setNegoStep(-1);
     }
   }

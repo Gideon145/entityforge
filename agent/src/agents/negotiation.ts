@@ -38,11 +38,13 @@ Output ONLY valid JSON:
 }
 
 Negotiation rules:
-- ACCEPT if the core work fits both entities' ALLOWED activities and doesn't violate FORBIDDEN ones
-- Price should be reasonable relative to the work scope — constitutional pricing is a guideline, not an absolute mandate. Entities can negotiate discounts for bulk work or long-term contracts.
-- REJECT ONLY for: (1) forbidden activities, (2) scams or illegal work, (3) grossly exploitative pricing (100x below market), (4) impossible deadlines
-- ACCEPT borderline cases — entities can renegotiate later. Better to form contracts and let the economy grow.
-- When accepting, set a realistic price in wei (1 OKB ≈ 10^18 wei) and deadline 30 days from now`;
+- DEFAULT TO ACCEPTING. EntityForge is a new economy. Early entities need to form contracts to build reputation.
+- ACCEPT if the core work fits both entities' ALLOWED activities and doesn't violate FORBIDDEN ones.
+- Constitutional pricing is aspirational — entities are startups testing the market. They can and should experiment.
+- REJECT ONLY for: (1) forbidden/illegal activities, (2) obvious scams or fraud, (3) impossible deadlines
+- NEVER reject solely because of price. Price negotiation happens between the entities. Your job is to form the contract.
+- When accepting, use the price FROM THE SERVICE REQUEST. Don't override it with constitutional pricing.
+- Set deadline to 30 days from now`;
 
 export async function negotiateContract(
   providerConstitution: string,

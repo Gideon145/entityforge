@@ -178,41 +178,45 @@ app.post("/negotiate", async (req, res) => {
 
     let txHash = "";
     let contractId = "";
+    let chainError = "";
 
-    // If accepted, propose on-chain
+    // If accepted, propose on-chain (best-effort — RPC may be flaky)
     if (result.accepted && result.contractTerms) {
-      const agmt = getContract();
-      const deliverableHash = ethers.keccak256(
-        ethers.toUtf8Bytes(serviceRequest)
-      );
-      // Ensure deadline is always at least 7 days in the future
-      const minDeadline = Math.floor(Date.now() / 1000) + 7 * 86400;
-      const safeDeadline = Math.max(result.contractTerms.deadline, minDeadline);
-      const tx = await agmt.propose(
-        result.contractTerms.providerEntityId,
-        result.contractTerms.buyerEntityId,
-        deliverableHash,
-        result.contractTerms.price,
-        safeDeadline
-      );
-      const receipt = await tx.wait();
-      txHash = receipt.hash;
-      contractId = receipt.logs[0]?.topics?.[1] ?? "";
+      try {
+        const agmt = getContract();
+        const deliverableHash = ethers.keccak256(
+          ethers.toUtf8Bytes(serviceRequest)
+        );
+        const minDeadline = Math.floor(Date.now() / 1000) + 7 * 86400;
+        const safeDeadline = Math.max(result.contractTerms.deadline, minDeadline);
+        const tx = await agmt.propose(
+          result.contractTerms.providerEntityId,
+          result.contractTerms.buyerEntityId,
+          deliverableHash,
+          result.contractTerms.price,
+          safeDeadline
+        );
+        const receipt = await tx.wait();
+        txHash = receipt.hash;
+        contractId = receipt.logs[0]?.topics?.[1] ?? "";
+        console.log(`📜 Contract proposed on-chain: ${txHash}`);
 
-      console.log(`📜 Contract proposed on-chain: ${txHash}`);
-
-      // Cache in memory
-      activeContracts.push({
-        id: activeContracts.length + 1,
-        contractId,
-        ...result.contractTerms,
-        status: "proposed",
-        txHash,
-        createdAt: new Date().toISOString(),
-      });
+        activeContracts.push({
+          id: activeContracts.length + 1,
+          contractId,
+          ...result.contractTerms,
+          status: "proposed",
+          txHash,
+          createdAt: new Date().toISOString(),
+        });
+      } catch (chainErr: any) {
+        console.warn("⚠️ On-chain proposal failed (RPC), returning AI result:", chainErr.message);
+        chainError = chainErr.message;
+        // Still return the AI result — the demo still shows intelligence
+      }
     }
 
-    res.json({ ...result, txHash, contractId });
+    res.json({ ...result, txHash, contractId, chainError });
   } catch (err: any) {
     console.error("Negotiation error:", err);
     res.status(500).json({ error: err.message });
