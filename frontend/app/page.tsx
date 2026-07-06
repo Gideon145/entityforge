@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 
-const API = process.env.NEXT_PUBLIC_AGENT_API || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_AGENT_API || "https://entityforge-production.up.railway.app";
 const OKLINK = "https://www.oklink.com/x-layer/evm";
 
 // ── Styles ────────────────────────────────────────────
