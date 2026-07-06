@@ -5,8 +5,8 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
-    "deploy:testnet": "npx hardhat run scripts/deploy.ts --network xLayerTestnet",
-    "deploy:mainnet": "npx hardhat run scripts/deploy.ts --network xLayer"
+    "deploy:testnet": "npx hardhat run scripts/deploy.js --network xLayerTestnet",
+    "deploy:mainnet": "npx hardhat run scripts/deploy.js --network xLayer"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
