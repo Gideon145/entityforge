@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 import { formEntity } from "./agents/formation";
 import { negotiateContract } from "./agents/negotiation";
 import { findProvider } from "./agents/procurement";
-import { getProvider, getFactory, getContract } from "./chain";
+import { getProvider, getFactory, getContract, getVault } from "./chain";
 import { ethers } from "ethers";
 
 const app = express();
@@ -33,7 +33,7 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", entities: entities.length, contracts: activeContracts.length });
 });
 
-// ── POST /form — Form a new entity ──────────────────────
+// ── POST /form — Form a new entity (AI + on-chain) ──────
 app.post("/form", async (req, res) => {
   try {
     const { idea } = req.body;
@@ -49,8 +49,24 @@ app.post("/form", async (req, res) => {
       ethers.toUtf8Bytes(JSON.stringify(constitution))
     );
 
-    // 3. Store in memory
-    const entityId = entities.length + 1;
+    // 3. Deploy to X Layer mainnet
+    const factory = getFactory();
+    const signerAddr = process.env.PRIVATE_KEY
+      ? new ethers.Wallet(process.env.PRIVATE_KEY).address
+      : "0x0000000000000000000000000000000000000000";
+
+    const tx = await factory.formEntity(
+      constitution.name,
+      constitutionHash,
+      signerAddr
+    );
+    const receipt = await tx.wait();
+    console.log(`⛓️  Tx: ${receipt.hash}`);
+
+    // Parse entity ID from Formed event
+    const entityId = Number(receipt.logs[0]?.topics?.[1] ?? entities.length + 1);
+
+    // 4. Store in memory (cache)
     entities.push({
       id: entityId,
       name: constitution.name,
@@ -58,14 +74,14 @@ app.post("/form", async (req, res) => {
       constitutionHash,
     });
 
-    // 4. Log — in production, call factory.formEntity() on-chain
-    console.log(`🏛️ Entity #${entityId} formed: ${constitution.name}`);
+    console.log(`🏛️ Entity #${entityId} formed on-chain: ${constitution.name}`);
 
     res.json({
       success: true,
       entityId,
       constitution,
       constitutionHash,
+      txHash: receipt.hash,
     });
   } catch (err: any) {
     console.error("Formation error:", err);
