@@ -363,14 +363,15 @@ export default function Home() {
                           <StepDot done={negoStep > i} active={negoStep === i} label={s} />
                         </div>
                       ))}
-                      {negoStep >= negoSteps.length && negoResult && (
+                      {negoResult && (
                         <div style={{ marginTop: 12, padding: 12, borderRadius: 6, animation: "slideUp 0.4s ease-out",
-                          background: negoResult.accepted ? "rgba(16,185,129,0.08)" : "rgba(239,68,68,0.08)",
+                          background: negoResult.accepted ? "rgba(16,185,129,0.08)" : negoResult.error ? "rgba(239,68,68,0.08)" : "rgba(239,68,68,0.08)",
                           border: `1px solid ${negoResult.accepted ? "rgba(16,185,129,0.2)" : "rgba(239,68,68,0.2)"}` }}>
                           <div style={{ fontSize: 16, fontWeight: 700, color: negoResult.accepted ? c.green : c.red }}>
-                            {negoResult.accepted ? "✅ Agreement Reached" : "❌ Rejected"} <span style={{ fontSize: 11, fontWeight: 400, color: c.dim }}>Confidence: {negoResult.confidence}%</span>
+                            {negoResult.accepted ? "✅ Agreement Reached" : negoResult.error ? "❌ Error" : "❌ Rejected"}
+                            {negoResult.confidence && <span style={{ fontSize: 11, fontWeight: 400, color: c.dim, marginLeft: 8 }}>Confidence: {negoResult.confidence}%</span>}
                           </div>
-                          <p style={{ fontSize: 12, color: c.dim, margin: "6px 0", lineHeight: 1.5 }}>{negoResult.reasoning}</p>
+                          <p style={{ fontSize: 12, color: c.dim, margin: "6px 0", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{negoResult.reasoning || negoResult.error}</p>
                           {negoResult.txHash && <a href={`${OKLINK}/tx/${negoResult.txHash}`} target="_blank" style={{ fontSize: 11, color: c.accent, textDecoration: "none" }}>View contract on OKLink ↗</a>}
                         </div>
                       )}
