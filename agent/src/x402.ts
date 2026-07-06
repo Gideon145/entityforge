@@ -4,7 +4,7 @@ import { Request, Response, NextFunction } from "express";
 // Implements OKX Agent Payments Protocol standard
 
 const SERVICE_ENDPOINT = "https://entityforge-production.up.railway.app";
-const SERVICE_PRICE_USD = "10"; // 10 USDT
+const SERVICE_PRICE_USD = "0.5"; // 0.5 USDT
 
 /**
  * Pre-body-parser check: validates payment before attempting JSON parse.
