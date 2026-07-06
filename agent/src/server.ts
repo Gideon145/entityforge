@@ -28,9 +28,27 @@ let entities: Array<{
 
 let activeContracts: any[] = [];
 
+// ── Startup: Sync entities from chain ────────────────────
+async function syncFromChain() {
+  try {
+    const factory = getFactory();
+    const count = Number(await factory.entityCount());
+    console.log(`⛓️  ${count} entities on-chain (cache: ${entities.length} in this session)`);
+  } catch (err: any) {
+    // Read-only — silent skip if RPC unavailable
+  }
+}
+
 // ── Health ──────────────────────────────────────────────
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", entities: entities.length, contracts: activeContracts.length });
+});
+
+// ── Sync from chain ─────────────────────────────────────
+app.post("/sync", async (_req, res) => {
+  entities = [];
+  await syncFromChain();
+  res.json({ entities: entities.length });
 });
 
 // ── POST /form — Form a new entity (AI + on-chain) ──────
@@ -139,7 +157,7 @@ app.post("/procure", async (req, res) => {
   }
 });
 
-// ── POST /negotiate — Negotiate contract terms ──────────
+// ── POST /negotiate — Negotiate + propose on-chain ──────
 app.post("/negotiate", async (req, res) => {
   try {
     const { providerId, buyerId, serviceRequest } = req.body;
@@ -158,18 +176,40 @@ app.post("/negotiate", async (req, res) => {
       serviceRequest
     );
 
-    // If accepted, record contract
-    if (result.accepted) {
-      const contract = {
+    let txHash = "";
+    let contractId = "";
+
+    // If accepted, propose on-chain
+    if (result.accepted && result.contractTerms) {
+      const agmt = getContract();
+      const deliverableHash = ethers.keccak256(
+        ethers.toUtf8Bytes(serviceRequest)
+      );
+      const tx = await agmt.propose(
+        result.contractTerms.providerEntityId,
+        result.contractTerms.buyerEntityId,
+        deliverableHash,
+        result.contractTerms.price,
+        result.contractTerms.deadline
+      );
+      const receipt = await tx.wait();
+      txHash = receipt.hash;
+      contractId = receipt.logs[0]?.topics?.[1] ?? "";
+
+      console.log(`📜 Contract proposed on-chain: ${txHash}`);
+
+      // Cache in memory
+      activeContracts.push({
         id: activeContracts.length + 1,
+        contractId,
         ...result.contractTerms,
         status: "proposed",
+        txHash,
         createdAt: new Date().toISOString(),
-      };
-      activeContracts.push(contract);
+      });
     }
 
-    res.json(result);
+    res.json({ ...result, txHash, contractId });
   } catch (err: any) {
     console.error("Negotiation error:", err);
     res.status(500).json({ error: err.message });
@@ -182,9 +222,10 @@ app.get("/contracts", (_req, res) => {
 });
 
 // ── Start ───────────────────────────────────────────────
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🏛️  EntityForge Agent running on http://localhost:${PORT}`);
   console.log("   Formation Agent  — POST /form");
   console.log("   Negotiation Agent — POST /negotiate");
   console.log("   Procurement Agent — POST /procure");
+  await syncFromChain();
 });
