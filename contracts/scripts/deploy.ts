@@ -1,7 +1,8 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  console.log("Deploying EntityForge protocol to X Layer...\n");
+  const network = process.env.HARDHAT_NETWORK || "xLayer";
+  console.log(`Deploying EntityForge protocol to X Layer (${network})...\n`);
 
   // 1. Deploy Factory
   const Factory = await ethers.getContractFactory("EntityForgeFactory");

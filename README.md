@@ -45,7 +45,7 @@ cp .env.example .env
 # Add your PRIVATE_KEY
 npm install
 npm run compile
-npm run deploy:testnet   # X Layer testnet (chain 1952)
+npm run deploy:mainnet   # X Layer mainnet (chain 196) — required for OKX.AI
 
 # 2. Agent
 cd agent

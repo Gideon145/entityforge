@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import "dotenv/config";
 
-const RPC_URL = process.env.RPC_URL || "https://testrpc.xlayer.tech";
+const RPC_URL = process.env.RPC_URL || "https://rpc.xlayer.tech";
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 
 const provider = new ethers.JsonRpcProvider(RPC_URL);
