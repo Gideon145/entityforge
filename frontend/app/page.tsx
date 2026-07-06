@@ -38,6 +38,7 @@ export default function Home() {
   const [prov, setProv] = useState(""); const [buy, setBuy] = useState("");
   const [svc, setSvc] = useState(""); const [nego, setNego] = useState<any>(null);
   const [negoBusy, setNegoBusy] = useState(false);
+  const [valMsg, setValMsg] = useState("");
 
   useEffect(() => {
     fetch(`${API}/health`).then(r => r.json()).then(setHealth).catch(() => {});
@@ -56,7 +57,16 @@ export default function Home() {
   }
 
   async function doNego() {
-    if (!prov || !buy || !svc) return; setNegoBusy(true); setNego(null);
+    setValMsg("");
+    if (!prov.trim() || !buy.trim() || !svc.trim()) {
+      setValMsg("Please fill in all three fields: Provider ID, Buyer ID, and Service Request.");
+      return;
+    }
+    if (isNaN(+prov) || isNaN(+buy)) {
+      setValMsg("Provider ID and Buyer ID must be numbers.");
+      return;
+    }
+    setNegoBusy(true); setNego(null);
     try {
       const r = await fetch(`${API}/negotiate`, { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ providerId: +prov, buyerId: +buy, serviceRequest: svc }) });
@@ -111,11 +121,11 @@ export default function Home() {
               <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
                 <div style={{ flex: 1 }}>
                   <label style={s.label}>Provider Entity ID</label>
-                  <input value={prov} onChange={e => setProv(e.target.value)} placeholder="1" style={{ ...s.input, padding: "0.4rem 0.6rem" }} />
+                  <input type="number" value={prov} onChange={e => setProv(e.target.value)} placeholder="e.g. 12" style={{ ...s.input, padding: "0.4rem 0.6rem" }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={s.label}>Buyer Entity ID</label>
-                  <input value={buy} onChange={e => setBuy(e.target.value)} placeholder="2" style={{ ...s.input, padding: "0.4rem 0.6rem" }} />
+                  <input type="number" value={buy} onChange={e => setBuy(e.target.value)} placeholder="e.g. 13" style={{ ...s.input, padding: "0.4rem 0.6rem" }} />
                 </div>
               </div>
               <label style={s.label}>Service Request</label>
@@ -125,6 +135,9 @@ export default function Home() {
               <button onClick={doNego} disabled={negoBusy} style={s.btn(negoBusy)}>
                 {negoBusy ? "⚡ Negotiating…" : "🤝 Negotiate & Propose On-Chain"}
               </button>
+              {valMsg && (
+                <p style={{ color: "#fbbf24", fontSize: "0.8rem", margin: "0.4rem 0 0" }}>⚠️ {valMsg}</p>
+              )}
               {nego && (
                 <div style={{ marginTop: "0.8rem", padding: "0.7rem", borderRadius: 7, background: nego.accepted ? "#061a06" : "#1a0606", border: `1px solid ${nego.accepted ? "#0d3320" : "#331010"}`, maxHeight: 280, overflowY: "auto" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
